@@ -17,23 +17,13 @@ from .models.notion import Database, Page, SearchResults
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('notion_mcp')
 
-# Find and load .env file from project root
-project_root = Path(__file__).parent.parent.parent
-env_path = project_root / '.env'
-if not env_path.exists():
-    raise FileNotFoundError(f"No .env file found at {env_path}")
-load_dotenv(env_path)
 
 # Initialize server
 server = Server("notion-mcp")
 
-# Configuration with validation
-NOTION_API_KEY = os.getenv("NOTION_API_KEY")
-if not NOTION_API_KEY:
-    raise ValueError("NOTION_API_KEY not found in .env file")
 
-# Initialize Notion client
-notion_client = NotionClient(NOTION_API_KEY)
+notion_client: NotionClient
+
 
 @server.list_tools()
 async def list_tools() -> List[Tool]:
@@ -244,9 +234,23 @@ async def call_tool(name: str, arguments: Any) -> Sequence[TextContent | Embedde
 
 async def main():
     """Run the server."""
+    global notion_client
+
+    # Find and load .env file from project root
+    project_root = Path(__file__).parent.parent.parent
+    env_path = project_root / '.env'
+    if env_path.exists():
+        load_dotenv(env_path)
+
+    # Configuration with validation
+    NOTION_API_KEY = os.getenv("NOTION_API_KEY")
+
     if not NOTION_API_KEY:
         raise ValueError("NOTION_API_KEY environment variable is required")
     
+    # Initialize Notion client
+    notion_client = NotionClient(NOTION_API_KEY)
+
     async with stdio_server() as (read_stream, write_stream):
         await server.run(
             read_stream,
