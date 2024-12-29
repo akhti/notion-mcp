@@ -3,7 +3,7 @@
 import os
 from typing import Any, Dict, List, Optional
 import httpx
-from .models.notion import Database, Page, SearchResults
+from .models.notion import Database, Page, SearchResults, PropertyValue
 
 class NotionClient:
     """Client for interacting with the Notion API."""
